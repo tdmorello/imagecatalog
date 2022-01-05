@@ -152,3 +152,4 @@ cython_debug/
 #.idea/
 poetry.lock
 .vscode/
+scratch/
