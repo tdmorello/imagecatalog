@@ -46,12 +46,12 @@ class Catalog(FPDF):
     def cols(self, value) -> None:
         self._cols = self._verify_int(value)
 
-    def header(self, txt=None):  # noqa: D102
+    def header(self):  # noqa: D102
         self.set_font("helvetica", "B", 10)
         self.cell(0, 10, self.title, 0, 0, align="L")
         self.ln()
 
-    def footer(self, txt=None):  # noqa: D102
+    def footer(self):  # noqa: D102
         self.set_font("helvetica", "I", 8)
         self.cell(0, 10, f"Page {self.page_no()} / {self.pages_count}", 0, 0, align="L")
         timestamp = datetime.now().strftime("%b %d, %Y at %H:%M:%S")
@@ -112,9 +112,11 @@ class Catalog(FPDF):
         x_start, y_start = self.x, self.y
         values = {"label": label, "image": image, "note": note}
 
+        # REFACTOR is it possible to get font height without switching
         # same font as label
         self.set_font("helvetica", style="B", size=8)
         h_lbl = self.font_size + 2
+        # REFACTOR see above refactor note
         # same font as note
         self.set_font("helvetica", style="I", size=8)
         h_nte = (
@@ -129,7 +131,7 @@ class Catalog(FPDF):
                 self._insert_image(w=w, h=h_img, img=value)
             elif key == "note":
                 self._insert_note(w=w, h=h_nte, txt=value)
-            # handle extra key/values
+            # TODO handle extra key/values
             elif isinstance(value, str):
                 ...
             else:
