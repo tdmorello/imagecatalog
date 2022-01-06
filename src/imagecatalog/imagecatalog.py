@@ -27,24 +27,6 @@ class Catalog(FPDF):
         self.set_author(author if author is not None else "[No Author]")
         self.set_keywords(keywords)
 
-    @property
-    def rows(self) -> int:
-        """Number of rows per page."""
-        return self._rows
-
-    @rows.setter
-    def rows(self, value) -> None:
-        self._rows = self._verify_int(value)
-
-    @property
-    def cols(self) -> int:
-        """Number of columns per page."""
-        return self._cols
-
-    @cols.setter
-    def cols(self, value) -> None:
-        self._cols = self._verify_int(value)
-
     def header(self):  # noqa: D102
         self.set_font("helvetica", "B", 10)
         self.cell(0, 10, self.title, 0, 0, align="L")
