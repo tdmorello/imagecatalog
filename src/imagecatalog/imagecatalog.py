@@ -1,16 +1,15 @@
 """A python class to create a contact sheet with labels and notes."""
 
 import logging
-import os
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 
 import PIL
 from fpdf import FPDF
 from PIL.Image import Image
 
-PathLike = Union[str, os.PathLike]
+PathLike = Union[str, bytes, Path]
 
 logger = logging.getLogger(__name__)
 
@@ -140,30 +139,48 @@ class Catalog(FPDF):
                 raise ValueError(f"Cannot handle `{type(value)}` type")
 
         self.x, self.y = x_start, y_start
-        self.multi_cell(w=w, h=h, txt="", border=1, ln=3)
+        self.multi_cell(w=w, h=h, border=1, ln=3)
 
     def _insert_label(self, w: int, h: int, txt: str) -> None:
+        """Place a label at the specified location and move to the next cell."""
         self.set_font("helvetica", style="B", size=8)
-        self.multi_cell(w=w, h=h, txt=txt, align="C", border=1, ln=2)
+        self.cell(w=w, h=h, txt=txt, align="C", border=1, ln=2)
 
     def _insert_image(self, w: int, h: int, img: Union[PathLike, Image]) -> None:
+        """Place an image at the specified location and move to the next cell."""
         image_name = self._get_image_name(img)
         try:
-            self.image(img, x=self.x, y=self.y, w=w, h=h, alt_text=image_name)
-            self.multi_cell(w=w, h=h, txt="", ln=2)
+            if not isinstance(img, Image):
+                img = PIL.Image.open(img)
+
+            im_w, im_h = self._dims_to_fit(img, (w, h))
+            x = self.x + ((w - im_w) / 2)
+            y = self.y + ((h - im_h) / 2)
+
+            self.image(img, x=x, y=y, w=im_w, h=im_h, alt_text=image_name)
+            self.multi_cell(w=w, h=h, ln=2)
         except (PIL.UnidentifiedImageError, FileNotFoundError) as e:
             logger.warning(str(e))
-            self.multi_cell(w=w, h=h, txt=image_name, align="C", ln=2)
+            self.cell(w=w, h=h, txt=image_name, align="C", ln=2)
 
     def _insert_note(self, w: int, h: int, txt: str) -> None:
+        """Place a note at the specified location and move to the next cell."""
         # color trigger keywords for labels?
         self.set_font("helvetica", style="I", size=8)
         self.multi_cell(w=w, txt=txt, ln=2)
 
     @staticmethod
+    def _dims_to_fit(img: Image, size: Tuple[int, int]) -> Tuple[int, int]:
+        """Return dimensions to fit image in a space."""
+        w, h = size
+        im_w, im_h = img.width, img.height
+        scale = (w / im_w) if (im_w / im_h) >= (w / h) else (h / im_h)
+
+        return (int(im_w * scale), int(im_h * scale))
+
+    @staticmethod
     def _get_image_name(image: Union[PathLike, Image]) -> str:
         """Returns the filename for an image."""
-        # REFACTOR
         try:
             return Path(image).name  # type: ignore
         except TypeError:
@@ -171,7 +188,7 @@ class Catalog(FPDF):
         try:
             return image.filename  # type: ignore
         except AttributeError:
-            return ""
+            return "[image name unavailable]"
 
     @staticmethod
     def _verify_int(value) -> int:
