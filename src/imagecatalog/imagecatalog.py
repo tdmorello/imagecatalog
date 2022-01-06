@@ -77,10 +77,12 @@ class Catalog(FPDF):
             notes (Optional[List[str]], optional): list of notes for images,
                 should be same length as `images`, displayed below image.
                 Defaults to None.
+            rows (int, optional): number of rows per page. Defaults to 4.
+            cols (int, optional): number of columns per page. Defaults to 3.
 
         Raises:
             ValueError: if images and labels (if supplied) and notes (if
-            supplied) are not equal lengths.
+                supplied) are not equal lengths.
         """
         # check that supplied arguments are same length
         if (labels is not None and len(labels) != len(images)) or (
