@@ -1,13 +1,18 @@
 """A python class to create a contact sheet with labels and notes."""
 
+import logging
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Union
 
-import PIL.Image
+import PIL
 from fpdf import FPDF
+from PIL.Image import Image
 
-PathLike = Union[str, bytes, os.PathLike]
+PathLike = Union[str, os.PathLike]
+
+logger = logging.getLogger(__name__)
 
 
 class Catalog(FPDF):
@@ -19,8 +24,8 @@ class Catalog(FPDF):
         self.set_font("helvetica", size=10)
         self.rows = rows
         self.cols = cols
-        self.set_title(title)
-        self.set_author(author)
+        self.set_title(title if title is not None else "[No Title]")
+        self.set_author(author if author is not None else "[No Author]")
         self.set_keywords(keywords)
 
     @property
@@ -42,14 +47,20 @@ class Catalog(FPDF):
         self._cols = self._verify_int(value)
 
     def header(self, txt=None):  # noqa: D102
-        ...
+        self.set_font("helvetica", "B", 10)
+        self.cell(0, 10, self.title, 0, 0, align="L")
+        self.ln()
 
     def footer(self, txt=None):  # noqa: D102
-        ...
+        self.set_font("helvetica", "I", 8)
+        self.cell(0, 10, f"Page {self.page_no()} / {self.pages_count}", 0, 0, align="L")
+        timestamp = datetime.now().strftime("%b %d, %Y at %H:%M:%S")
+        self.cell(0, 10, f"Created {timestamp}", 0, 0, align="R")
+        self.ln()
 
     def insert_table(
         self,
-        images: List[Union[PathLike, PIL.Image.Image]],
+        images: List[Union[PathLike, Image]],
         labels: Optional[List[str]] = None,
         notes: Optional[List[str]] = None,
         rows: int = 4,
@@ -78,13 +89,13 @@ class Catalog(FPDF):
             raise ValueError("`images`, `labels`, and `notes` must be the same length.")
 
         if labels is None:
-            labels = self._get_labels_from_images(images)
+            labels = [self._get_image_name(im) for im in images]
         if notes is None:
             notes = [""] * len(images)
 
         rows, cols = self._verify_int(rows), self._verify_int(cols)
         w = self.epw / cols
-        h = self.eph / rows
+        h = (self.eph - 10) / rows
 
         for i, (im, lb, nt) in enumerate(zip(images, labels, notes)):
             # check if building cell will trigger a new page
@@ -92,7 +103,7 @@ class Catalog(FPDF):
                 self.add_page()
 
             self._build_cell(im, lb, nt, w, h)
-            # `(i + 1) % cols` is 0 on the last column of the row
+            # new line after last column of row
             if ((i + 1) % cols) == 0:
                 self.ln()
 
@@ -100,44 +111,73 @@ class Catalog(FPDF):
         """Builds a multicell within a multicell."""
         x_start, y_start = self.x, self.y
         values = {"label": label, "image": image, "note": note}
-        for key, item in values.items():
-            inner_w = w
-            inner_h = h / len(values)
 
-            # handle data categories separately
+        # same font as label
+        self.set_font("helvetica", style="B", size=8)
+        h_lbl = self.font_size + 2
+        # same font as note
+        self.set_font("helvetica", style="I", size=8)
+        h_nte = (
+            len(self.multi_cell(w=w, txt=note, split_only=True)) * self.font_size + 1
+        )
+        h_img = h - h_lbl - h_nte
+
+        for key, value in values.items():
             if key == "label":
-                self.multi_cell(w=inner_w, h=inner_h, txt=f"{key}: {item}", ln=2)
+                self._insert_label(w=w, h=h_lbl, txt=value)
             elif key == "image":
-                self.multi_cell(w=inner_w, h=inner_h, txt=f"{key}: {item}", ln=2)
+                self._insert_image(w=w, h=h_img, img=value)
             elif key == "note":
-                self.multi_cell(w=inner_w, h=inner_h, txt=f"{key}: {item}", ln=2)
+                self._insert_note(w=w, h=h_nte, txt=value)
+            # handle extra key/values
+            elif isinstance(value, str):
+                ...
             else:
-                self.multi_cell(w=inner_w, h=inner_h, txt=f"{key}: {item}", ln=2)
+                raise ValueError(f"Cannot handle `{type(value)}` type")
 
         self.x, self.y = x_start, y_start
         self.multi_cell(w=w, h=h, txt="", border=1, ln=3)
 
+    def _insert_label(self, w: int, h: int, txt: str) -> None:
+        self.set_font("helvetica", style="B", size=8)
+        self.multi_cell(w=w, h=h, txt=txt, align="C", border=1, ln=2)
+
+    def _insert_image(self, w: int, h: int, img: Union[PathLike, Image]) -> None:
+        image_name = self._get_image_name(img)
+        try:
+            self.image(img, x=self.x, y=self.y, w=w, h=h, alt_text=image_name)
+            self.multi_cell(w=w, h=h, txt="", ln=2)
+        except (PIL.UnidentifiedImageError, FileNotFoundError) as e:
+            logger.warning(str(e))
+            self.multi_cell(w=w, h=h, txt=image_name, align="C", ln=2)
+
+    def _insert_note(self, w: int, h: int, txt: str) -> None:
+        # color trigger keywords for labels?
+        self.set_font("helvetica", style="I", size=8)
+        self.multi_cell(w=w, txt=txt, ln=2)
+
     @staticmethod
-    def _get_labels_from_images(images) -> List[str]:
-        """Return labels as strings from image filename when possible."""
-
-        def get_label(fname):
-            try:
-                return Path(fname).name
-            except TypeError:
-                return ""
-
-        return [get_label(im) for im in images]
+    def _get_image_name(image: Union[PathLike, Image]) -> str:
+        """Returns the filename for an image."""
+        # REFACTOR
+        try:
+            return Path(image).name  # type: ignore
+        except TypeError:
+            pass
+        try:
+            return image.filename  # type: ignore
+        except AttributeError:
+            return ""
 
     @staticmethod
     def _verify_int(value) -> int:
-        """Verify that `value` is a whole number."""
+        """Verifies that `value` is a whole number."""
         if value != int(value):
-            raise ValueError("Value should be an integer.")
+            raise ValueError("Value should be an integer")
         else:
             return int(value)
 
-    def create(self, images, labels, notes, rows, cols):
+    def create(self, images, rows, cols, labels=None, notes=None):
         """Generate the PDF."""
         self.add_page()
         self.insert_table(images, labels, notes, rows, cols)
@@ -145,7 +185,8 @@ class Catalog(FPDF):
 
 if __name__ == "__main__":
     catalog = Catalog()
-    images = labels = [f"image_{i}.jpg" for i in range(12)]
-    notes = [f"note for {im}" for im in images]
-    catalog.create(images, labels, notes, rows=3, cols=4)
+    images = [Path(f"./images/image_{i:02}.jpg") for i in range(15)]
+    notes = ["blue: DAPI, green: latexin, red: parvalbumin" for _ in images]
+    catalog.title = "Title of the page [animal, section series]"
+    catalog.create(images, rows=5, cols=3, labels=None, notes=notes)
     catalog.output("test.pdf")

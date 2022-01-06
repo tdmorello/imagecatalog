@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw
 
 
 def text(output_path):
+    """Create a set of images for testing purposes."""
     output_path = Path(output_path)
     image = Image.new("RGB", (200, 200), "green")
     draw = ImageDraw.Draw(image)
