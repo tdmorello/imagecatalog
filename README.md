@@ -45,7 +45,7 @@ images/image_03.jpg,Image 3,image 3 note
 imagecatalog --csv sample.csv --title 'Image Catalog from CSV' example_csv.pdf
 ```
 
-[PDF output](https://github.com/tdmorello/imagecatalog/raw/main/resources/example.pdf)
+[PDF output](https://github.com/tdmorello/imagecatalog/blob/main/resources/example.pdf)
 
 ---
 
