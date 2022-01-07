@@ -17,7 +17,7 @@ def create_sample_image(output_path):
 if __name__ == "__main__":
     with open("images/sample.csv", "w") as fp:
         fp.write("image,label,note\n")
-        for i in range(20):
+        for i in range(12):
             fpath = f"images/image_{i:02}.jpg"
             create_sample_image(fpath)
             fp.write(f"{fpath},Image {i},image {i} note\n")
