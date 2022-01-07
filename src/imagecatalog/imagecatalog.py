@@ -17,15 +17,10 @@ logger = logging.getLogger(__name__)
 class Catalog(FPDF):
     """A class to create contact sheets from images, labels, and notes."""
 
-    def __init__(self, rows=4, cols=4, title=None, author=None, keywords=None):
+    def __init__(self):
         """Initialize the Catalog class."""
         super().__init__()
         self.set_font("helvetica", size=10)
-        self.rows = rows
-        self.cols = cols
-        self.set_title(title if title is not None else "[No Title]")
-        self.set_author(author if author is not None else "[No Author]")
-        self.set_keywords(keywords)
 
     def header(self):  # noqa: D102
         self.set_font("helvetica", "B", 10)
