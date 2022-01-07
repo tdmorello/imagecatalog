@@ -45,9 +45,9 @@ images/image_03.jpg,Image 3,image 3 note
 imagecatalog --csv sample.csv --title 'Image Catalog from CSV' example_csv.pdf
 ```
 
-![example_cvs.png](resources/example_cvs.png)
-
 [PDF output](resources/example_csv.pdf)
+
+![example_cvs.png](resources/example_cvs.png)
 
 ---
 
