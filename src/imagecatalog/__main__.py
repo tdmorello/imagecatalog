@@ -22,11 +22,18 @@ def main():
     DEFAULTS = {"rows": 4, "cols": 3}
 
     parser = argparse.ArgumentParser("imagecatalog")
-    parser.add_argument("output", help="path to output destination", metavar="FILE")
+    parser.add_argument(
+        "output",
+        help="path to output destination",
+        metavar="FILE",
+    )
 
     input_args = parser.add_mutually_exclusive_group(required=True)
     input_args.add_argument(
-        "-i", "--input", help="path to image folder", metavar="FOLDER"
+        "-i",
+        "--input",
+        help="path to image folder",
+        metavar="FOLDER",
     )
     input_args.add_argument(
         "--csv",
@@ -62,17 +69,40 @@ def main():
         default=DEFAULTS["cols"],
         help=f"number of table columns per page, defaults to {DEFAULTS['cols']}",
     )
-    pdf_args.add_argument("--author", type=str, help="document author")
-    pdf_args.add_argument("--title", type=str, help="document title")
-    pdf_args.add_argument("--keywords", type=str, help="document keywords")
+    pdf_args.add_argument(
+        "--author",
+        type=str,
+        help="document author",
+    )
+    pdf_args.add_argument(
+        "--title",
+        type=str,
+        help="document title",
+    )
+    pdf_args.add_argument(
+        "--keywords",
+        type=str,
+        help="document keywords",
+    )
 
     other_args = parser.add_argument_group("other options")
     other_args.add_argument(
-        "-v", "--verbose", action="store_true", help="verbose output"
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="verbose output",
     )
-    other_args.add_argument("-q", "--quiet", action="store_true", help="quite output")
+    other_args.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        help="quite output",
+    )
 
     args = parser.parse_args()
+
+    if Path(args.output).exists():
+        raise FileExistsError("PDF file already exists.")
 
     if args.input:
         input = args.input
@@ -84,12 +114,12 @@ def main():
         )
     else:
         with open(args.csv) as fp:
-            D = {"images": [], "labels": [], "notes": []}
+            D = {"image": [], "label": [], "note": []}
             reader = csv.DictReader(fp)
             for row in reader:
                 {D[key.lower()].append(val) for key, val in row.items()}
         # filters will not apply to csv input
-        images, labels, notes = D["images"], D["labels"], D["notes"]
+        images, labels, notes = D["image"], D["label"], D["note"]
 
     if len(images) == 0:
         raise ValueError("No images found. Exiting.")
@@ -104,6 +134,9 @@ def main():
 
     catalog.create(images, args.rows, args.cols, labels=labels, notes=notes)
     catalog.output(args.output)
+
+    if Path(args.output).exists():
+        print(f"Image catalog written to {args.output}")
 
 
 if __name__ == "__main__":
