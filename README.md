@@ -74,7 +74,7 @@ catalog.set_title("Image Catalog")
 # grab a set of existing images from a local directory
 images = [f"images/image_{i:02}.jpg" for i in range(12)]
 
-# optionally add labels (defaults to filename)
+# optionally add labels (defaults to filenames)
 labels = [f"Image {i}" for i in range(len(images))]
 
 # optionally add notes
