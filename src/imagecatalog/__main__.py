@@ -1,62 +1,108 @@
 """CLI entry point to package."""
 
 import argparse
+import csv
+import fnmatch
+from pathlib import Path
+from typing import List, Union
 
-import imagecatalog
+import imagecatalog  # noqa:
+
+PathLike = Union[str, bytes, Path]
 
 
-def filter_files(pattern):
+def filter_files(files: List, pattern: List[str]):
     """Filter files list by pattern."""
-    ...
+    sets = [set(fnmatch.filter(files, p)) for p in pattern]
+    return set.intersection(*sets)
 
 
 def main():
     """CLI entrypoint."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "output", help="path to output destination", metavar="FILE"
-    )
+    DEFAULTS = {"rows": 4, "cols": 3}
 
-    input_group = parser.add_mutually_exclusive_group(required=True)
-    input_group.add_argument(
+    parser = argparse.ArgumentParser("catalog")
+    parser.add_argument("output", help="path to output destination", metavar="FILE")
+
+    input_args = parser.add_mutually_exclusive_group(required=True)
+    input_args.add_argument(
         "-i", "--input", help="path to image folder", metavar="FOLDER"
     )
-    input_group.add_argument(
-        "--from-csv", help="create catalog from csv file", metavar="CSVFILE"
+    input_args.add_argument(
+        "--csv",
+        help=(
+            "create catalog from csv file, formatted with headers `images,labels,notes`"
+        ),
+        metavar="CSVFILE",
     )
 
     parser.add_argument(
         "-f",
         "--filter",
-        help="filter image files with a pattern",
+        help=(
+            "append a glob pattern to a set of file filters, note: filters return the "
+            "intersection of all globs"
+        ),
+        action="append",
         metavar="PATTERN",
     )
-    parser.add_argument(
+
+    pdf_args = parser.add_argument_group("pdf options")
+    pdf_args.add_argument(
+        "-r",
+        "--rows",
+        type=int,
+        default=DEFAULTS["rows"],
+        help=f"number of table rows per page, defaults to {DEFAULTS['rows']}",
+    )
+    pdf_args.add_argument(
+        "-c",
+        "--cols",
+        type=int,
+        default=DEFAULTS["cols"],
+        help=f"number of table columns per page, defaults to {DEFAULTS['cols']}",
+    )
+    pdf_args.add_argument("--author", type=str, help="document author")
+    pdf_args.add_argument("--title", type=str, help="document title")
+    pdf_args.add_argument("--keywords", type=str, help="document keywords")
+
+    other_args = parser.add_argument_group("other options")
+    other_args.add_argument(
         "-v", "--verbose", action="store_true", help="verbose output"
     )
-    parser.add_argument(
-        "-q", "--quiet", action="store_true", help="quite output"
+    other_args.add_argument("-q", "--quiet", action="store_true", help="quite output")
+
+    # DEBUG
+    # args = parser.parse_args()
+    args = parser.parse_args(
+        "--csv images/sample.csv --filter *.jpg output.pdf".split()
     )
 
-    group = parser.add_argument_group("pdf options")
-    group.add_argument("-r", "--rows", help="number of table rows per page")
-    group.add_argument("-c", "--cols", help="number of table columns per page")
-    group.add_argument("--author", help="document author")
-    group.add_argument("--title", help="document title")
-    group.add_argument("--keywords", help="document keywords")
+    if args.input:
+        images = args.input
+    else:
+        with open(args.csv) as fp:
+            D = {"images": [], "labels": [], "notes": []}
+            reader = csv.DictReader(fp)
+            for row in reader:
+                {D[key.lower()].append(val) for key, val in row.items()}
+        images, labels, notes = D["images"], D["labels"], D["notes"]  # noqa: F841
 
-    args = parser.parse_args("-i file.txt output.pdf".split())
+    images = filter_files(images, args.filter if args.filter else "*")
+
+    # DEBUG
+    # parser.print_help()
 
     # create the image catalog
-    catalog = imagecatalog.Catalog()
+    # catalog = imagecatalog.Catalog()
 
-    # set metadata
-    catalog.set_title(args.title)
-    catalog.set_author(args.author)
-    catalog.set_keywords(args.keywords)
+    # # set metadata
+    # catalog.set_title(args.title)
+    # catalog.set_author(args.author)
+    # catalog.set_keywords(args.keywords)
 
-    catalog.create()
-    catalog.output(args.output)
+    # catalog.create()
+    # catalog.output(args.output)
 
 
 if __name__ == "__main__":

@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class Catalog(FPDF):
-    """Class to create a contact sheet from images, labels, and notes."""
+    """A class to create contact sheets from images, labels, and notes."""
 
     def __init__(self, rows=4, cols=4, title=None, author=None, keywords=None):
         """Initialize the Catalog class."""
@@ -81,7 +81,7 @@ class Catalog(FPDF):
         h = (self.eph - 10) / rows
 
         for i, (im, lb, nt) in enumerate(zip(images, labels, notes)):
-            # check if building cell will trigger a new page
+            # check if building a new cell will trigger a page break
             if self.will_page_break(h):
                 self.add_page()
 
@@ -147,13 +147,13 @@ class Catalog(FPDF):
 
     def _insert_note(self, w: int, h: int, txt: str) -> None:
         """Place a note at the specified location and move to the next cell."""
-        # color trigger keywords for labels?
+        # TODO color trigger keywords for labels?
         self.set_font("helvetica", style="I", size=8)
         self.multi_cell(w=w, txt=txt, ln=2)
 
     @staticmethod
     def _dims_to_fit(img: Image, size: Tuple[int, int]) -> Tuple[int, int]:
-        """Return dimensions to fit image in a space."""
+        """Return new dimensions to fit image in a space."""
         w, h = size
         im_w, im_h = img.width, img.height
         scale = (w / im_w) if (im_w / im_h) >= (w / h) else (h / im_h)
