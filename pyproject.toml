@@ -2,8 +2,16 @@
 [tool.poetry]
 name = "imagecatalog"
 version = "0.1.0"
-description = "Create a PDF contact sheet"
+description = "Create a PDF contact sheet from a set of images"
 authors = ["Tim Morello <tdmorello@gmail.com>"]
+readme = "README.md"
+license = "LICENCE"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/tdmorello/imagecatalog/issues"
+"Documentation" = "https://github.com/tdmorello/imagecatalog#README.md"
+"Source Code" = "https://github.com/tdmorello/imagecatalog"
+"User Support" = "https://github.com/tdmorello/imagecatalog/issues"
 
 [tool.poetry.dependencies]
 python = "^3.7"
