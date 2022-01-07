@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "imagecatalog"
-version = "0.1.0"
+version = "0.1.1"
 description = "Create a PDF contact sheet from a set of images"
 authors = ["Tim Morello <tdmorello@gmail.com>"]
 readme = "README.md"
