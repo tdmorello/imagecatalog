@@ -6,7 +6,7 @@ import fnmatch
 from pathlib import Path
 from typing import List, Union
 
-import imagecatalog  # noqa:
+import imagecatalog
 
 PathLike = Union[str, bytes, Path]
 
@@ -14,14 +14,14 @@ PathLike = Union[str, bytes, Path]
 def filter_files(files: List, pattern: List[str]):
     """Filter files list by pattern."""
     sets = [set(fnmatch.filter(files, p)) for p in pattern]
-    return list(set.intersection(*sets)).sort()
+    return sorted(list(set.intersection(*sets) if len(sets) > 1 else sets[0]))
 
 
 def main():
     """CLI entrypoint."""
     DEFAULTS = {"rows": 4, "cols": 3}
 
-    parser = argparse.ArgumentParser("catalog")
+    parser = argparse.ArgumentParser("imagecatalog")
     parser.add_argument("output", help="path to output destination", metavar="FILE")
 
     input_args = parser.add_mutually_exclusive_group(required=True)
@@ -72,17 +72,16 @@ def main():
     )
     other_args.add_argument("-q", "--quiet", action="store_true", help="quite output")
 
-    # DEBUG
-    # args = parser.parse_args()
-    args = parser.parse_args(
-        "--csv images/sample.csv --filter *.jpg output.pdf".split()
-    )
+    args = parser.parse_args()
 
     if args.input:
-        images = args.input
+        input = args.input
         labels = None
         notes = None
-        images = filter_files(images, args.filter if args.filter else "*")
+        images = filter_files(
+            [str(f) for f in Path(input).glob("*")],
+            args.filter if args.filter else ["*"],
+        )
     else:
         with open(args.csv) as fp:
             D = {"images": [], "labels": [], "notes": []}
@@ -91,6 +90,9 @@ def main():
                 {D[key.lower()].append(val) for key, val in row.items()}
         # filters will not apply to csv input
         images, labels, notes = D["images"], D["labels"], D["notes"]
+
+    if len(images) == 0:
+        raise ValueError("No images found. Exiting.")
 
     # create the image catalog
     catalog = imagecatalog.Catalog()
