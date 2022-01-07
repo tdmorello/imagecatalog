@@ -181,3 +181,23 @@ class Catalog(FPDF):
         """Generate the PDF."""
         self.add_page()
         self.build_table(images, labels, notes, rows, cols)
+
+
+if __name__ == "__main__":
+    # from imagecatalog import Catalog
+
+    # Catalog inherits from FPDF
+    # see https://github.com/PyFPDF/fpdf2 for more methods
+    catalog = Catalog()
+    # optionally add a title
+    catalog.set_title("Image Catalog")
+    # grab a set of existing images from a local directory
+    images = [f"images/image_{i:02}.jpg" for i in range(12)]
+    # optionally add labels (defaults to filename)
+    labels = [f"Image {i}" for i in range(len(images))]
+    # optionally add notes
+    notes = [f"image {i} note" for i in range(len(images))]
+    # generate the pdf
+    catalog.create(images, labels=labels, notes=notes, rows=4, cols=3)
+    # save
+    catalog.output("example.pdf")
