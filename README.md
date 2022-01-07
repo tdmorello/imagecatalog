@@ -28,7 +28,7 @@ imagecatalog -h
 imagecatalog -i images/ -f '*.jpg' --title 'Image Catalog' example.pdf
 ```
 
-[PDF output](https://github.com/tdmorello/imagecatalog/raw/main/resources/example.pdf)
+[PDF output](https://github.com/tdmorello/imagecatalog/blob/main/resources/example.pdf)
 
 File paths and metadata can also be supplied from a csv file with headers "image", "label", "note"
 
