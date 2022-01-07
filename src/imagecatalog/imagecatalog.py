@@ -29,6 +29,8 @@ class Catalog(FPDF):
 
     def footer(self):  # noqa: D102
         self.set_font("helvetica", "I", 8)
+        # NOTE: is there a way to avoid hard-coding this?
+        self.set_y(-15)
         self.cell(0, 10, f"Page {self.page_no()} / {self.pages_count}", 0, 0, align="L")
         timestamp = datetime.now().strftime("%b %d, %Y at %H:%M:%S")
         self.cell(0, 10, f"Created {timestamp}", 0, 0, align="R")
@@ -179,12 +181,3 @@ class Catalog(FPDF):
         """Generate the PDF."""
         self.add_page()
         self.build_table(images, labels, notes, rows, cols)
-
-
-if __name__ == "__main__":
-    catalog = Catalog()
-    images = [Path(f"./images/image_{i:02}.jpg") for i in range(15)]
-    notes = ["blue: DAPI, green: latexin, red: parvalbumin" for _ in images]
-    catalog.title = "Title of the page [animal, section series]"
-    catalog.create(images, rows=5, cols=3, labels=None, notes=notes)
-    catalog.output("test.pdf")
