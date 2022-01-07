@@ -14,7 +14,7 @@ PathLike = Union[str, bytes, Path]
 def filter_files(files: List, pattern: List[str]):
     """Filter files list by pattern."""
     sets = [set(fnmatch.filter(files, p)) for p in pattern]
-    return set.intersection(*sets)
+    return list(set.intersection(*sets)).sort()
 
 
 def main():
@@ -41,7 +41,7 @@ def main():
         "--filter",
         help=(
             "append a glob pattern to a set of file filters, note: filters return the "
-            "intersection of all globs"
+            "intersection of all globs; filters are not applied to input from csv"
         ),
         action="append",
         metavar="PATTERN",
@@ -80,29 +80,28 @@ def main():
 
     if args.input:
         images = args.input
+        labels = None
+        notes = None
+        images = filter_files(images, args.filter if args.filter else "*")
     else:
         with open(args.csv) as fp:
             D = {"images": [], "labels": [], "notes": []}
             reader = csv.DictReader(fp)
             for row in reader:
                 {D[key.lower()].append(val) for key, val in row.items()}
-        images, labels, notes = D["images"], D["labels"], D["notes"]  # noqa: F841
-
-    images = filter_files(images, args.filter if args.filter else "*")
-
-    # DEBUG
-    # parser.print_help()
+        # filters will not apply to csv input
+        images, labels, notes = D["images"], D["labels"], D["notes"]
 
     # create the image catalog
-    # catalog = imagecatalog.Catalog()
+    catalog = imagecatalog.Catalog()
 
     # # set metadata
-    # catalog.set_title(args.title)
-    # catalog.set_author(args.author)
-    # catalog.set_keywords(args.keywords)
+    catalog.set_title(args.title if args.title is not None else "")
+    catalog.set_author(args.author if args.author is not None else "")
+    catalog.set_keywords(args.keywords if args.keywords is not None else "")
 
-    # catalog.create()
-    # catalog.output(args.output)
+    catalog.create(images, args.rows, args.cols, labels=labels, notes=notes)
+    catalog.output(args.output)
 
 
 if __name__ == "__main__":
