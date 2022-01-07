@@ -154,4 +154,5 @@ poetry.lock
 .vscode/
 scratch/
 images/*
-src/.DS_Store
+src/
+.DS_Store
