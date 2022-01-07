@@ -47,8 +47,6 @@ imagecatalog --csv sample.csv --title 'Image Catalog from CSV' example_csv.pdf
 
 [PDF output](resources/example_csv.pdf)
 
-![example_cvs.png](resources/example_cvs.png)
-
 ---
 
 ### Script usage
