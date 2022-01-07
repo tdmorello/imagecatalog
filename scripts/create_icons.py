@@ -5,8 +5,8 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 
-def text(output_path):
-    """Create a set of images for testing purposes."""
+def create_sample_image(output_path):
+    """Create a set of images for testing."""
     output_path = Path(output_path)
     image = Image.new("RGB", (200, 200), "green")
     draw = ImageDraw.Draw(image)
@@ -15,6 +15,9 @@ def text(output_path):
 
 
 if __name__ == "__main__":
-    fnames = [Path(f"image_{i:02}.jpg") for i in range(1, 21)]
-    for name in fnames:
-        text(Path("./images") / name)
+    with open("images/sample.csv", "w") as fp:
+        fp.write("image,label,note\n")
+        for i in range(20):
+            fpath = f"images/image_{i:02}.jpg"
+            create_sample_image(fpath)
+            fp.write(f"{fpath},Image {i},image {i} note\n")
