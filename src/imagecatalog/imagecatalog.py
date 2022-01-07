@@ -34,7 +34,7 @@ class Catalog(FPDF):
         self.cell(0, 10, f"Created {timestamp}", 0, 0, align="R")
         self.ln()
 
-    def insert_table(
+    def build_table(
         self,
         images: List[Union[PathLike, Image]],
         labels: Optional[List[str]] = None,
@@ -178,7 +178,7 @@ class Catalog(FPDF):
     def create(self, images, rows, cols, labels=None, notes=None):
         """Generate the PDF."""
         self.add_page()
-        self.insert_table(images, labels, notes, rows, cols)
+        self.build_table(images, labels, notes, rows, cols)
 
 
 if __name__ == "__main__":
