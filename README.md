@@ -18,7 +18,9 @@ pip install git+https://github.com/tdmorello/imagecatalog.git
 
 ---
 
-### Command line usage
+## Usage
+
+### Command line
 
 ```bash
 imagecatalog -h
@@ -49,7 +51,7 @@ imagecatalog --csv sample.csv --title 'Image Catalog from CSV' example_csv.pdf
 
 ---
 
-### Script usage
+### Scripting
 
 ```python
 from imagecatalog import Catalog
