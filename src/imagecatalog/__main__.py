@@ -19,7 +19,7 @@ def filter_files(files: List, pattern: List[str]):
 
 def main():
     """CLI entrypoint."""
-    DEFAULTS = {"rows": 4, "cols": 3}
+    DEFAULTS = {"rows": 4, "cols": 3, "orientation": "portrait"}
 
     parser = argparse.ArgumentParser("imagecatalog")
     parser.add_argument(
@@ -59,14 +59,12 @@ def main():
         "-r",
         "--rows",
         type=int,
-        default=DEFAULTS["rows"],
         help=f"number of table rows per page, defaults to {DEFAULTS['rows']}",
     )
     pdf_args.add_argument(
         "-c",
         "--cols",
         type=int,
-        default=DEFAULTS["cols"],
         help=f"number of table columns per page, defaults to {DEFAULTS['cols']}",
     )
     pdf_args.add_argument(
@@ -84,6 +82,15 @@ def main():
         type=str,
         help="document keywords",
     )
+    pdf_args.add_argument(
+        "--orientation",
+        type=str,
+        default=DEFAULTS["orientation"],
+        choices=["landscape", "portrait"],
+        help=(
+            f"landscape or portrait orientation, defaults to {DEFAULTS['orientation']}"
+        ),
+    )
 
     other_args = parser.add_argument_group("other options")
     other_args.add_argument(
@@ -100,6 +107,16 @@ def main():
     )
 
     args = parser.parse_args()
+
+    if args.orientation in [None, "portrait"]:
+        orientation = "portrait"
+        rows = args.rows if args.rows is not None else DEFAULTS["rows"]
+        cols = args.cols if args.cols is not None else DEFAULTS["cols"]
+    else:
+        orientation = args.orientation
+        # if unassigned for landscape orientation, flip default rows and cols
+        rows = args.rows if args.rows is not None else DEFAULTS["cols"]
+        cols = args.cols if args.cols is not None else DEFAULTS["rows"]
 
     if Path(args.output).exists():
         raise FileExistsError("PDF file already exists.")
@@ -125,14 +142,14 @@ def main():
         raise ValueError("No images found. Exiting.")
 
     # create the image catalog
-    catalog = imagecatalog.Catalog()
+    catalog = imagecatalog.Catalog(orientation=orientation)
 
     # # set metadata
     catalog.set_title(args.title if args.title is not None else "")
     catalog.set_author(args.author if args.author is not None else "")
     catalog.set_keywords(args.keywords if args.keywords is not None else "")
 
-    catalog.create(images, args.rows, args.cols, labels=labels, notes=notes)
+    catalog.create(images, rows, cols, labels=labels, notes=notes)
     catalog.output(args.output)
 
     if Path(args.output).exists():

@@ -17,9 +17,8 @@ logger = logging.getLogger(__name__)
 class Catalog(FPDF):
     """A class to create contact sheets from images, labels, and notes."""
 
-    def __init__(self):
-        """Initialize the Catalog class."""
-        super().__init__()
+    def __init__(self, *args, **kwargs):  # noqa: D107
+        super().__init__(*args, **kwargs)
         self.set_font("helvetica", size=10)
 
     def header(self):  # noqa: D102
