@@ -18,6 +18,7 @@ class Catalog(FPDF):
     """A class to create contact sheets from images, labels, and notes."""
 
     def __init__(self, *args, **kwargs):  # noqa: D107
+        """`*Args` and `**kwargs` passed to `fpdf.FPDF`."""
         super().__init__(*args, **kwargs)
         self.set_font("helvetica", size=10)
 
