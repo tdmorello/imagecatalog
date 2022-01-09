@@ -33,6 +33,8 @@ release = "0.1.1"
 # ones.
 extensions = ["sphinx.ext.autodoc", "sphinx.ext.coverage", "sphinx.ext.napoleon"]
 
+autoapi_dirs = ["../src/imagecatalog"]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
