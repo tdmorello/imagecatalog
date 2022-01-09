@@ -1,8 +1,9 @@
 # imagecatalog
 
-[![License](https://img.shields.io/pypi/l/imagecatalog.svg?color=green)](https://github.com/tdmorello/imagecatalog/raw/main/LICENSE)
+[![Docs](https://img.shields.io/readthedocs/imagecatalog.svg?color=green)](https://imagecatalog.readthedocs.io/en/latest/)
 [![PyPI](https://img.shields.io/pypi/v/imagecatalog.svg?color=green)](https://pypi.org/project/imagecatalog)
 [![Python Version](https://img.shields.io/pypi/pyversions/imagecatalog.svg?color=green)](https://python.org)
+[![License](https://img.shields.io/pypi/l/imagecatalog.svg?color=green)](https://github.com/tdmorello/imagecatalog/raw/main/LICENSE)
 [![codecov](https://codecov.io/gh/tdmorello/imagecatalog/branch/main/graph/badge.svg)](https://codecov.io/gh/tdmorello/imagecatalog)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 <!-- [![tests](https://github.com/tdmorello/imagecoverage/workflows/tests/badge.svg)](https://github.com/tdmorello/imagecoverage/actions) -->
