@@ -1,13 +1,20 @@
 """Script to create a set of images."""
 
 from pathlib import Path
+from typing import Union
 
 from PIL import Image, ImageDraw
 
+PathLike = Union[str, bytes, Path]
 
-def create_sample_image(output_path):
-    """Create a set of images for testing."""
-    output_path = Path(output_path)
+
+def create_sample_image(fname: str):
+    """Create a set of images for testing.
+
+    Args:
+        fname: image save path
+    """
+    output_path = Path(fname)
     image = Image.new("RGB", (200, 200), "green")
     draw = ImageDraw.Draw(image)
     draw.text((10, 10), output_path.name)
