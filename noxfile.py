@@ -13,6 +13,7 @@ def docs(session: Session) -> None:
     """Build and serve the documentation with live reloading on file changes."""
     args = session.posargs or ["--open-browser", "docs", "docs/_build"]
     session.install(".")
+    session.install("-r", "docs/requirements.txt")
     session.install("sphinx", "sphinx-autobuild", "sphinx-click", "furo")
 
     build_dir = Path("docs", "_build")
