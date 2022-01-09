@@ -20,6 +20,7 @@ Pillow = "^9.0.0"
 
 [tool.poetry.dev-dependencies]
 black = "^21.12b0"
+darglint = "^1.8.1"
 flake8 = "^4.0.1"
 flake8-black = "^0.2.3"
 flake8-docstrings = "^1.6.0"
@@ -30,6 +31,7 @@ nox = "^2021.10.1"
 pre-commit = "^2.16.0"
 pytest = "^6.2.5"
 pytest-cov = "^3.0.0"
+xdoctest = "^0.15.10"
 
 [tool.poetry.scripts]
 imagecatalog = "imagecatalog.__main__:main"
