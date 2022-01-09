@@ -1,4 +1,9 @@
-"""A python class to create a contact sheet with labels and notes."""
+"""Create a contact sheet PDF with labels and notes.
+
+Todo:
+    * todo1
+
+"""
 
 import logging
 from datetime import datetime
@@ -14,12 +19,76 @@ PathLike = Union[str, bytes, Path]
 logger = logging.getLogger(__name__)
 
 
-class Catalog(FPDF):
-    """A class to create contact sheets from images, labels, and notes."""
+def create_catalog(
+    fname: PathLike,
+    images: List[Union[PathLike, Image]],
+    labels: Optional[List[str]] = None,
+    notes: Optional[List[str]] = None,
+    orientation: str = "portrait",
+    rows: int = 4,
+    cols: int = 3,
+):
+    """Convenience method to generate an image catalog and save as PDF.
 
-    def __init__(self, *args, **kwargs):  # noqa: D107
-        """`*Args` and `**kwargs` passed to `fpdf.FPDF`."""
-        super().__init__(*args, **kwargs)
+    Args:
+        fname: pdf output filename
+        images: list of images
+        labels: list of labels for images,
+            should be same length as ``images``, displayed above image. If
+            `None`, labels will be file names (if available). Defaults
+            to `None`.
+        notes: list of notes for images,
+            should be same length as ``images``, displayed below image. Defaults
+            to `None`.
+        orientation: page orientation, possible values are "portrait" (can be
+                abbreviated "P") or "landscape" (can be abbreviated "L"). Default
+                to "portrait".
+        rows: number of rows per page
+        cols: number of columns per page
+    """
+    catalog = Catalog(orientation)
+    catalog.add_page()
+    catalog.build_table(images, labels, notes, rows, cols)
+    catalog.output(fname)
+
+
+class Catalog(FPDF):
+    """A class to create contact sheets from images, labels, and notes.
+
+    Example:
+        >>> # generate sample data
+        >>> from PIL import Image
+        >>> images = [Image.new("RGB", (200, 200), "gray") for _ in range(9)]
+        >>> labels = [f"Image {i}" for i in range(9)]
+        >>> notes = [f"image {i} note" for i in range(9)]
+        >>> from imagecatalog import Catalog
+        >>> catalog = Catalog()
+        >>> # optionally add a title
+        >>> catalog.set_title("Image Catalog")
+        >>> catalog.add_page()
+        >>> catalog.build_table(images, labels, notes, rows=4, cols=3)
+        >>> catalog.output("image_catalog.pdf")
+    """
+
+    def __init__(
+        self,
+        orientation: str = "portrait",
+        unit: str = "mm",
+        format: str = "A4",
+        **kwargs,
+    ):  # noqa: D107
+        """Instantiate an FPDF object.
+
+        Args:
+            orientation: page orientation, possible values are "portrait" (can be
+                abbreviated "P") or "landscape" (can be abbreviated "L"). Default
+                to "portrait".
+            unit: possible values are "pt", "mm", "cm", "in", or a number
+            format: possible values are "a3", "a4", "a5", "letter", "legal" or a tuple
+                (width, height) expressed in the given unit. Default to "a4".
+            **kwargs: keyword arguments passed to `fpdf.FPDF`
+        """
+        super().__init__(orientation=orientation, unit=unit, format=format, **kwargs)
         self.set_font("helvetica", size=10)
 
     def header(self):  # noqa: D102
@@ -47,19 +116,18 @@ class Catalog(FPDF):
         """Insert the catalog table into the pdf.
 
         Args:
-            images (List[Union[PathLike, Image]]): list of images
-            labels (Optional[List[str]], optional): list of labels for images,
-                should be same length as `images`, displayed above image. If
-                `None`, labels will be file names (if available).
-                Defaults to None.
-            notes (Optional[List[str]], optional): list of notes for images,
-                should be same length as `images`, displayed below image.
-                Defaults to None.
-            rows (int, optional): number of rows per page. Defaults to 4.
-            cols (int, optional): number of columns per page. Defaults to 3.
+            images: list of images
+            labels: list of labels for images,
+                should be same length as ``images``, displayed above image. If
+                `None`, labels will be file names (if available). Defaults to `None`.
+            notes: list of notes for images,
+                should be same length as ``images``, displayed below image. Defaults
+                to `None`.
+            rows: number of rows per page. Defaults to `4`.
+            cols: number of columns per page. Defaults to `3`.
 
         Raises:
-            ValueError: if images and labels (if supplied) and notes (if
+            ValueError: if ``images`` and ``labels`` (if supplied) and notes (if
                 supplied) are not equal lengths.
         """
         # check that supplied arguments are same length
@@ -88,17 +156,14 @@ class Catalog(FPDF):
                 self.ln()
 
     def _build_cell(self, image, label, note, w, h):
-        """Builds a multicell within a multicell."""
         x_start, y_start = self.x, self.y
         values = {"label": label, "image": image, "note": note}
 
         # REFACTOR is it possible to get font height without switching
-        # same font as label
-        self.set_font("helvetica", style="B", size=8)
+        self.set_font("helvetica", style="B", size=8)  # same font as label
         h_lbl = self.font_size + 2
         # REFACTOR see above refactor note
-        # same font as note
-        self.set_font("helvetica", style="I", size=8)
+        self.set_font("helvetica", style="I", size=8)  # same font as note
         h_nte = (
             len(self.multi_cell(w=w, txt=note, split_only=True)) * self.font_size + 1
         )
@@ -121,12 +186,10 @@ class Catalog(FPDF):
         self.multi_cell(w=w, h=h, border=1, ln=3)
 
     def _insert_label(self, w: int, h: int, txt: str) -> None:
-        """Place a label at the specified location and move to the next cell."""
         self.set_font("helvetica", style="B", size=8)
         self.cell(w=w, h=h, txt=txt, align="C", border=1, ln=2)
 
     def _insert_image(self, w: int, h: int, img: Union[PathLike, Image]) -> None:
-        """Place an image at the specified location and move to the next cell."""
         image_name = self._get_image_name(img)
         try:
             if not isinstance(img, Image):
@@ -143,14 +206,12 @@ class Catalog(FPDF):
             self.cell(w=w, h=h, txt=image_name, align="C", ln=2)
 
     def _insert_note(self, w: int, h: int, txt: str) -> None:
-        """Place a note at the specified location and move to the next cell."""
         # TODO color trigger keywords for labels?
         self.set_font("helvetica", style="I", size=8)
         self.multi_cell(w=w, txt=txt, ln=2)
 
     @staticmethod
     def _dims_to_fit(img: Image, size: Tuple[int, int]) -> Tuple[int, int]:
-        """Return new dimensions to fit image in a space."""
         w, h = size
         im_w, im_h = img.width, img.height
         scale = (w / im_w) if (im_w / im_h) >= (w / h) else (h / im_h)
@@ -159,7 +220,6 @@ class Catalog(FPDF):
 
     @staticmethod
     def _get_image_name(image: Union[PathLike, Image]) -> str:
-        """Returns the filename for an image."""
         try:
             return Path(image).name  # type: ignore
         except TypeError:
@@ -171,16 +231,10 @@ class Catalog(FPDF):
 
     @staticmethod
     def _verify_int(value) -> int:
-        """Verifies that `value` is a whole number."""
         if value != int(value):
             raise ValueError("Value should be an integer")
         else:
             return int(value)
-
-    def create(self, images, rows, cols, labels=None, notes=None):
-        """Generate the PDF."""
-        self.add_page()
-        self.build_table(images, labels, notes, rows, cols)
 
 
 if __name__ == "__main__":
