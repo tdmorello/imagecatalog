@@ -36,20 +36,33 @@ imagecatalog -h
 ```
 
 ```bash
-imagecatalog -i images/ -f '*.jpg' --title 'Image Catalog' example.pdf
+imagecatalog -i images/ -f '*.png' --title 'Image Catalog' example.pdf
 ```
 
 [PDF output](https://github.com/tdmorello/imagecatalog/blob/main/resources/example.pdf)
+
+```bash
+imagecatalog   \
+    -i images/ \
+    -f '*.png' \
+    --rows 2   \
+    --cols 4   \
+    --orientation landscape \
+    --title 'Image Catalog' \
+    example_landscape.pdf
+```
+
+[PDF output](https://github.com/tdmorello/imagecatalog/blob/main/resources/example_landscape.pdf)
 
 File paths and metadata can also be supplied from a csv file with headers "image", "label", "note"
 
 ```bash
 $ head -n5 sample.csv
 image,label,note
-images/image_00.jpg,Image 0,image 0 note
-images/image_01.jpg,Image 1,image 1 note
-images/image_02.jpg,Image 2,image 2 note
-images/image_03.jpg,Image 3,image 3 note
+images/image_00.png,Image 0,image 0 note
+images/image_01.png,Image 1,image 1 note
+images/image_02.png,Image 2,image 2 note
+images/image_03.png,Image 3,image 3 note
 ```
 
 ```bash
@@ -73,7 +86,7 @@ catalog = Catalog()
 catalog.set_title("Image Catalog")
 
 # grab a set of existing images from a local directory
-images = [f"images/image_{i:02}.jpg" for i in range(12)]
+images = [f"images/image_{i:02}.png" for i in range(12)]
 
 # optionally add labels (defaults to filenames)
 labels = [f"Image {i}" for i in range(len(images))]
@@ -82,7 +95,8 @@ labels = [f"Image {i}" for i in range(len(images))]
 notes = [f"note for image {i}" for i in range(len(images))]
 
 # generate the pdf
-catalog.create(images, labels=labels, notes=notes, rows=4, cols=3)
+catalog.add_page()
+catalog.build_table(images, labels, notes, rows=4, cols=3)
 
 # save
 catalog.output("example.pdf")

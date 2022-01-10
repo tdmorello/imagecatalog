@@ -51,7 +51,7 @@ def make_sample_files(
 
 
 if __name__ == "__main__":
-    images = make_sample_files("images", 15, ".png", single_color="green")
+    images = make_sample_files("images", 12, ".png", single_color="green")
     with open("images/sample.csv", "w") as fp:
         fp.write("image,label,note\n")
         for i, fpath in enumerate(images):
