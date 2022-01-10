@@ -6,6 +6,19 @@ description = "Create a PDF contact sheet from a set of images"
 authors = ["Tim Morello <tdmorello@gmail.com>"]
 readme = "README.md"
 license = "LICENCE"
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/tdmorello/imagecatalog/issues"
