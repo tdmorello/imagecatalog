@@ -103,7 +103,7 @@ class Catalog(FPDF):
         self.set_font("helvetica", "I", 8)
         # NOTE: is there a way to avoid hard-coding this?
         self.set_y(-15)
-        self.cell(0, 10, f"Page {self.page_no()} / {self.pages_count}", 0, 0, align="L")
+        self.cell(0, 10, f"Page {self.page_no()} / {{nb}}", 0, 0, align="L")
         timestamp = datetime.now().strftime("%b %d, %Y at %H:%M:%S")
         self.cell(0, 10, f"Created {timestamp}", 0, 0, align="R")
         self.ln()
@@ -186,10 +186,10 @@ class Catalog(FPDF):
             elif key == "note":
                 if note:
                     self._insert_note(w=w, h=h_nte, txt=value)
-            else:
-                pass
             # TODO handle extra key/values
             # elif isinstance(value, str):
+            else:
+                pass
 
         self.x, self.y = x_start, y_start
         self.multi_cell(w=w, h=h, border=1, ln=3)
