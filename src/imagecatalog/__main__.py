@@ -4,21 +4,52 @@ import argparse
 import csv
 import fnmatch
 from pathlib import Path
-from typing import List, Union
+from typing import Dict, List, Tuple, Union
 
 import imagecatalog
 
 PathLike = Union[str, bytes, Path]
 
 
-def filter_files(files: List, pattern: List[str]):
-    """Filter files list by pattern."""
+def filter_files(files: List, pattern: List[str]) -> List[str]:
+    """Filter files list by pattern.
+
+    Args:
+        files: list of filename string(s)
+        pattern: list of glob pattern(s)
+
+    Returns:
+        list of filenames filtered by glob pattern
+    """
     sets = [set(fnmatch.filter(files, p)) for p in pattern]
     return sorted(list(set.intersection(*sets) if len(sets) > 1 else sets[0]))
 
 
+def parse_csv(csvfile: str) -> Tuple[List[str], List[str], List[str]]:
+    """Open and parse csv.
+
+    Args:
+        csvfile: path to csvfile
+
+    Returns:
+        a tuple of lists for images, labels, and notes
+    """
+    with open(csvfile) as fp:
+        D: Dict[str, list] = {"image": [], "label": [], "note": []}
+        reader = csv.DictReader(fp)
+        for row in reader:
+            for key, val in row.items():
+                D[key.lower()].append(val)
+    return D["image"], D["label"], D["note"]
+
+
 def main():
-    """CLI entrypoint."""
+    """CLI entrypoint.
+
+    Raises:
+        ValueError: no images in image list
+        FileExistsError: output file already exists
+    """
     DEFAULTS = {"rows": 4, "cols": 3, "orientation": "portrait"}
 
     parser = argparse.ArgumentParser("imagecatalog")
@@ -85,7 +116,6 @@ def main():
     pdf_args.add_argument(
         "--orientation",
         type=str,
-        default=DEFAULTS["orientation"],
         choices=["landscape", "portrait"],
         help=(
             f"landscape or portrait orientation, defaults to {DEFAULTS['orientation']}"
@@ -109,47 +139,42 @@ def main():
     args = parser.parse_args()
 
     if args.orientation in [None, "portrait"]:
-        orientation = "portrait"
-        rows = args.rows if args.rows is not None else DEFAULTS["rows"]
-        cols = args.cols if args.cols is not None else DEFAULTS["cols"]
+        args.orientation = "portrait"
+        args.rows = args.rows if args.rows is not None else DEFAULTS["rows"]
+        args.cols = args.cols if args.cols is not None else DEFAULTS["cols"]
     else:
-        orientation = args.orientation
+        args.orientation = args.orientation
         # if unassigned for landscape orientation, flip default rows and cols
-        rows = args.rows if args.rows is not None else DEFAULTS["cols"]
-        cols = args.cols if args.cols is not None else DEFAULTS["rows"]
+        args.rows = args.rows if args.rows is not None else DEFAULTS["cols"]
+        args.cols = args.cols if args.cols is not None else DEFAULTS["rows"]
 
     if Path(args.output).exists():
         raise FileExistsError("PDF file already exists.")
 
     if args.input:
-        input = args.input
-        labels = None
-        notes = None
         images = filter_files(
-            [str(f) for f in Path(input).glob("*")],
+            [str(f) for f in Path(args.input).glob("*")],
             args.filter if args.filter else ["*"],
         )
+        labels = None
+        notes = None
+
     else:
-        with open(args.csv) as fp:
-            D = {"image": [], "label": [], "note": []}
-            reader = csv.DictReader(fp)
-            for row in reader:
-                {D[key.lower()].append(val) for key, val in row.items()}
-        # filters will not apply to csv input
-        images, labels, notes = D["image"], D["label"], D["note"]
+        images, labels, notes = parse_csv(args.csv)
 
     if len(images) == 0:
         raise ValueError("No images found. Exiting.")
 
     # create the image catalog
-    catalog = imagecatalog.Catalog(orientation=orientation)
+    catalog = imagecatalog.Catalog(orientation=args.orientation)
 
     # # set metadata
     catalog.set_title(args.title if args.title is not None else "")
     catalog.set_author(args.author if args.author is not None else "")
     catalog.set_keywords(args.keywords if args.keywords is not None else "")
 
-    catalog.create(images, rows, cols, labels=labels, notes=notes)
+    catalog.add_page(orientation=args.orientation)
+    catalog.build_table(images, labels, notes, args.rows, args.cols)
     catalog.output(args.output)
 
     if Path(args.output).exists():
