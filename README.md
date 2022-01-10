@@ -8,7 +8,6 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 <!-- [![tests](https://github.com/tdmorello/imagecoverage/workflows/tests/badge.svg)](https://github.com/tdmorello/imagecoverage/actions) -->
 
-
 Create a PDF contact sheet from a list of files.
 
 ## Installation
