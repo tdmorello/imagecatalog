@@ -33,9 +33,9 @@ def docs(session: Session) -> None:
         "docs",
         "docs/_build",
     ]
-    session.install(".")
+    _install_via_pip(session)
     session.install("-r", "docs/requirements.txt")
-    session.install("sphinx", "sphinx-autobuild", "sphinx-click", "furo")
+    session.install("sphinx", "sphinx-autobuild")
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():
