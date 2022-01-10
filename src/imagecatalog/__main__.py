@@ -140,13 +140,13 @@ def main():
 
     if args.orientation in [None, "portrait"]:
         args.orientation = "portrait"
-        args.rows = args.rows if args.rows is not None else DEFAULTS["rows"]
-        args.cols = args.cols if args.cols is not None else DEFAULTS["cols"]
+        args.rows = args.rows or DEFAULTS["rows"]
+        args.cols = args.cols or DEFAULTS["cols"]
     else:
         args.orientation = args.orientation
         # if unassigned for landscape orientation, flip default rows and cols
-        args.rows = args.rows if args.rows is not None else DEFAULTS["cols"]
-        args.cols = args.cols if args.cols is not None else DEFAULTS["rows"]
+        args.rows = args.rows or DEFAULTS["cols"]
+        args.cols = args.cols or DEFAULTS["rows"]
 
     if Path(args.output).exists():
         raise FileExistsError("PDF file already exists.")

@@ -165,11 +165,17 @@ class Catalog(FPDF):
         # REFACTOR is it possible to get font height without switching
         self.set_font("helvetica", style="B", size=8)  # same font as label
         h_lbl = self.font_size + 2
-        # REFACTOR see above refactor note
+        # REFACTOR see above refactor
         self.set_font("helvetica", style="I", size=8)  # same font as note
-        h_nte = (
-            len(self.multi_cell(w=w, txt=note, split_only=True)) * self.font_size + 1
-        )
+
+        if not note:
+            h_nte = 0
+        else:
+            h_nte = (
+                len(self.multi_cell(w=w, txt=note, split_only=True)) * self.font_size
+                + 1
+            )
+
         h_img = h - h_lbl - h_nte
 
         for key, value in values.items():
@@ -177,8 +183,11 @@ class Catalog(FPDF):
                 self._insert_label(w=w, h=h_lbl, txt=value)
             elif key == "image":
                 self._insert_image(w=w, h=h_img, img=value)
+            elif key == "note":
+                if note:
+                    self._insert_note(w=w, h=h_nte, txt=value)
             else:
-                self._insert_note(w=w, h=h_nte, txt=value)
+                pass
             # TODO handle extra key/values
             # elif isinstance(value, str):
 
