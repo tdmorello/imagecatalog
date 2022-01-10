@@ -1,5 +1,6 @@
 """Script to create a set of images."""
 
+import random
 from pathlib import Path
 from random import randrange
 from typing import List, Tuple, Union
@@ -9,17 +10,19 @@ from PIL import Image, ImageDraw
 PathLike = Union[str, bytes, Path]
 
 
-def make_random_image(im_size, single_color):
-    def make_random_hex():
+def make_random_image(im_size, single_color=None):
+    def get_random_hex():
         return f"#{randrange(0x1000000):06x}"
 
-    def make_random_pixel():
+    def get_random_pixel():
         return (randrange(0, 256), randrange(0, 256), randrange(0, 256))
 
     if single_color:
-        im = Image.new("RGB", im_size, make_random_hex())
+        if not isinstance(single_color, str):
+            single_color = get_random_hex()
+        im = Image.new("RGB", im_size, single_color)
     else:
-        data = [make_random_pixel() for _ in range(im_size[0] * im_size[1])]
+        data = [get_random_pixel() for _ in range(im_size[0] * im_size[1])]
         im = Image.new("RGB", im_size)
         im.putdata(data)
 
@@ -48,7 +51,7 @@ def make_sample_files(
 
 
 if __name__ == "__main__":
-    images = make_sample_files("images", 15)
+    images = make_sample_files("images", 15, ".png", single_color="green")
     with open("images/sample.csv", "w") as fp:
         fp.write("image,label,note\n")
         for i, fpath in enumerate(images):
