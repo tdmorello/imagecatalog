@@ -42,3 +42,10 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 88
+
+[tool.pytest.ini_options]
+addopts = ["--cov=imagecatalog", "--cov-report=html", "--cov-report=xml"]
+
+[tool.isort]
+profile = "black"
+line_length = 88

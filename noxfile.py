@@ -59,3 +59,4 @@ def _install_via_pip(session: Session) -> None:
             external=True,
         )
         session.install("-r", requirements_path)
+        session.install(".")
