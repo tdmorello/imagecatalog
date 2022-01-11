@@ -31,24 +31,24 @@ pip install git+https://github.com/tdmorello/imagecatalog.git
 ### Command line
 
 ```bash
+# for full list of options
 imagecatalog -h
 ```
 
 ```bash
-imagecatalog -i images/ -f '*.png' --title 'Image Catalog' example.pdf
+imagecatalog -i images/*.png -o example.pdf --title 'Image Catalog'
 ```
 
 [PDF output](https://github.com/tdmorello/imagecatalog/blob/main/resources/example.pdf)
 
 ```bash
 imagecatalog   \
-    -i images/ \
-    -f '*.png' \
+    -i images/*.png \
+    -o example_landscape.pdf \
     --rows 2   \
     --cols 4   \
     --orientation landscape \
-    --title 'Image Catalog' \
-    example_landscape.pdf
+    --title 'Catalog with Landscape Layout' \
 ```
 
 [PDF output](https://github.com/tdmorello/imagecatalog/blob/main/resources/example_landscape.pdf)
@@ -65,10 +65,33 @@ images/image_03.png,Image 3,image 3 note
 ```
 
 ```bash
-imagecatalog --csv sample.csv --title 'Image Catalog from CSV' example_csv.pdf
+imagecatalog --csv sample.csv --title 'Catalog from CSV' -o example_csv.pdf
 ```
 
 [PDF output](https://github.com/tdmorello/imagecatalog/blob/main/resources/example_csv.pdf)
+
+Other features: apply image filters
+
+```bash
+imagecatalog -i images/*.png -o catalog.pdf \
+    --invert    \
+    --grayscale \
+    --autocontrast
+```
+
+integrate with shell utilities
+
+```bash
+# make a catalog with all images created within the last day
+find . -ctime 1d | xargs imagecatalog -o catalog.pdf -i
+```
+
+use regular expressions to filter files
+
+```bash
+# make a catalog with images that have '1' and/or '2' in the filename
+imagecatalog -i images/*.png -o catalog.pdf --regex '.*(1|2).*'
+```
 
 ---
 
