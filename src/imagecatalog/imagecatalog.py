@@ -28,6 +28,9 @@ def create_catalog(
     orientation: str = "portrait",
     rows: int = 4,
     cols: int = 3,
+    autocontrast: bool = False,
+    grayscale: bool = False,
+    invert: bool = False,
 ):
     """Convenience method to generate an image catalog and save as PDF.
 
@@ -46,10 +49,22 @@ def create_catalog(
                 to "portrait".
         rows: number of rows per page
         cols: number of columns per page
+        autocontrast: apply autocontrast adjustment. Defaults to `False`.
+        grayscale: convert color image to grayscale. Defaults to `False`.
+        invert: invert image colors. Defaults to `False`.
     """
     catalog = Catalog(orientation)
     catalog.add_page()
-    catalog.build_table(images, labels, notes, rows, cols)
+    catalog.build_table(
+        images,
+        labels=labels,
+        notes=notes,
+        rows=rows,
+        cols=cols,
+        autocontrast=autocontrast,
+        grayscale=grayscale,
+        invert=invert,
+    )
     catalog.output(fname)
 
 
