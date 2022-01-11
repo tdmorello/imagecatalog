@@ -15,7 +15,7 @@ python_versions = ["3.10", "3.9", "3.8", "3.7"]
 def tests(session: Session) -> None:
     """Run the test suite."""
     _install_via_pip(session)
-    session.install("pytest", "pytest-cov")
+    session.install("pytest", "pytest-cov", "xdoctest")
     session.run("pytest")
 
 
