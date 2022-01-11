@@ -48,7 +48,7 @@ imagecatalog   \
     --rows 2   \
     --cols 4   \
     --orientation landscape \
-    --title 'Catalog with Landscape Layout' \
+    --title 'Catalog with Landscape Layout'
 ```
 
 [PDF output](https://github.com/tdmorello/imagecatalog/blob/main/resources/example_landscape.pdf)
