@@ -48,7 +48,7 @@ imagecatalog   \
     --rows 2   \
     --cols 4   \
     --orientation landscape \
-    --title 'Catalog with Landscape Layout' \
+    --title 'Catalog with Landscape Layout'
 ```
 
 [PDF output](https://github.com/tdmorello/imagecatalog/blob/main/resources/example_landscape.pdf)
@@ -118,7 +118,7 @@ notes = [f"note for image {i}" for i in range(len(images))]
 
 # generate the pdf
 catalog.add_page()
-catalog.build_table(images, labels, notes, rows=4, cols=3)
+catalog.build_table(images, labels, notes)
 
 # save
 catalog.output("example.pdf")

@@ -23,7 +23,7 @@ copyright = "2022, Tim Morello"
 author = "Tim Morello"
 
 # The full version, including alpha/beta/rc tags
-release = "0.1.1"
+release = "0.1.6"
 
 
 # -- General configuration ---------------------------------------------------
@@ -37,6 +37,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx_autodoc_typehints",
     "sphinx.ext.todo",
+    "sphinxarg.ext",
 ]
 
 autodoc_inherit_docstrings = False

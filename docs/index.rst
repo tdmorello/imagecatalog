@@ -4,18 +4,15 @@
    contain the root `toctree` directive.
 
 imagecatalog
-========================================
-
-.. automodule:: imagecatalog
-    :members:
-    :special-members: __init__
-    :no-undoc-members:
+============
 
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
 
+   installation
+   usage
+   reference
 
 
 Indices and tables
