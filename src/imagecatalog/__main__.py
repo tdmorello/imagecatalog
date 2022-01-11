@@ -2,7 +2,7 @@
 
 import argparse
 import csv
-import fnmatch
+import re
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
@@ -11,18 +11,18 @@ import imagecatalog
 PathLike = Union[str, bytes, Path]
 
 
-def filter_files(files: List, pattern: List[str]) -> List[str]:
-    """Filter files list by pattern.
+def filter_files(files: List, pattern: str) -> List[str]:
+    """Filter files list by regex pattern.
 
     Args:
         files: list of filename string(s)
         pattern: list of glob pattern(s)
 
     Returns:
-        list of filenames filtered by glob pattern
+        filtered list of filenames
     """
-    sets = [set(fnmatch.filter(files, p)) for p in pattern]
-    return sorted(list(set.intersection(*sets) if len(sets) > 1 else sets[0]))
+    r = re.compile(pattern)
+    return list(filter(r.match, files))
 
 
 def parse_csv(csvfile: str) -> Tuple[List[str], List[str], List[str]]:
@@ -53,36 +53,34 @@ def main():
     DEFAULTS = {"rows": 4, "cols": 3, "orientation": "portrait"}
 
     parser = argparse.ArgumentParser("imagecatalog")
-    parser.add_argument(
-        "output",
-        help="path to output destination",
-        metavar="FILE",
-    )
 
     input_args = parser.add_mutually_exclusive_group(required=True)
     input_args.add_argument(
         "-i",
         "--input",
-        help="path to image folder",
-        metavar="FOLDER",
+        help="image file(s)",
+        nargs="+",
+        metavar="IMAGE",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        help="pdf file",
+        metavar="PDF",
+        required=True,
     )
     input_args.add_argument(
+        "-s",
         "--csv",
-        help=(
-            "create catalog from csv file, formatted with headers `images,labels,notes`"
-        ),
-        metavar="CSVFILE",
+        help="create catalog from csv file with headers 'images,labels,notes'",
+        metavar="CSV",
     )
 
     parser.add_argument(
-        "-f",
-        "--filter",
-        help=(
-            "append a glob pattern to a set of file filters, note: filters return the "
-            "intersection of all globs; filters are not applied to input from csv"
-        ),
-        action="append",
-        metavar="PATTERN",
+        "-e",
+        "--regex",
+        help="filter file list by regex pattern",
+        metavar="REGEX",
     )
 
     pdf_args = parser.add_argument_group("pdf options")
@@ -99,6 +97,14 @@ def main():
         help=f"number of table columns per page, defaults to {DEFAULTS['cols']}",
     )
     pdf_args.add_argument(
+        "--orientation",
+        type=str,
+        choices=["landscape", "portrait"],
+        help=(
+            f"landscape or portrait orientation, defaults to {DEFAULTS['orientation']}"
+        ),
+    )
+    pdf_args.add_argument(
         "--author",
         type=str,
         help="document author",
@@ -113,14 +119,32 @@ def main():
         type=str,
         help="document keywords",
     )
-    pdf_args.add_argument(
-        "--orientation",
-        type=str,
-        choices=["landscape", "portrait"],
-        help=(
-            f"landscape or portrait orientation, defaults to {DEFAULTS['orientation']}"
-        ),
+
+    img_args = parser.add_argument_group("image options")
+    img_args.add_argument(
+        "--autocontrast",
+        help="apply autocontrast to images",
+        action="store_true",
+        default=False,
     )
+    img_args.add_argument(
+        "--grayscale",
+        help="convert color images to grayscale",
+        action="store_true",
+        default=False,
+    )
+    img_args.add_argument(
+        "--invert",
+        help="invert image colors",
+        action="store_true",
+        default=False,
+    )
+    # TODO split channels feature
+    # img_args.add_argument(
+    #     "--channel",
+    #     help="if multi-channel image, only display this channel",
+    #     metavar="CHAN",
+    # )
 
     other_args = parser.add_argument_group("other options")
     other_args.add_argument(
@@ -135,6 +159,12 @@ def main():
         action="store_true",
         help="quite output",
     )
+    other_args.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        help="force overwrite output",
+    )
 
     args = parser.parse_args()
 
@@ -148,33 +178,36 @@ def main():
         args.rows = args.rows or DEFAULTS["cols"]
         args.cols = args.cols or DEFAULTS["rows"]
 
-    if Path(args.output).exists():
+    if Path(args.output).exists() and not args.force:
         raise FileExistsError("PDF file already exists.")
 
     if args.input:
-        images = filter_files(
-            [str(f) for f in Path(args.input).glob("*")],
-            args.filter if args.filter else ["*"],
-        )
+        images = filter_files(args.input, args.regex or ".*")
         labels = None
         notes = None
 
     else:
         images, labels, notes = parse_csv(args.csv)
 
-    if len(images) == 0:
-        raise ValueError("No images found. Exiting.")
-
     # create the image catalog
     catalog = imagecatalog.Catalog(orientation=args.orientation)
 
-    # # set metadata
+    # set metadata
     catalog.set_title(args.title if args.title is not None else "")
     catalog.set_author(args.author if args.author is not None else "")
     catalog.set_keywords(args.keywords if args.keywords is not None else "")
 
-    catalog.add_page(orientation=args.orientation)
-    catalog.build_table(images, labels, notes, args.rows, args.cols)
+    catalog.add_page()
+    catalog.build_table(
+        images,
+        labels=labels,
+        notes=notes,
+        rows=args.rows,
+        cols=args.cols,
+        autocontrast=args.autocontrast,
+        grayscale=args.grayscale,
+        invert=args.invert,
+    )
     catalog.output(args.output)
 
     if Path(args.output).exists():

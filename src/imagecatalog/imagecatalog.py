@@ -10,7 +10,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
-import PIL
+import PIL.Image
+import PIL.ImageOps
 from fpdf import FPDF
 from PIL.Image import Image
 
@@ -115,6 +116,9 @@ class Catalog(FPDF):
         notes: Optional[List[str]] = None,
         rows: int = 4,
         cols: int = 3,
+        autocontrast: bool = False,
+        grayscale: bool = False,
+        invert: bool = False,
     ):
         """Insert the catalog table into the pdf.
 
@@ -128,6 +132,9 @@ class Catalog(FPDF):
                 to `None`.
             rows: number of rows per page. Defaults to `4`.
             cols: number of columns per page. Defaults to `3`.
+            autocontrast: apply autocontrast adjustment. Defaults to `False`.
+            grayscale: convert color image to grayscale. Defaults to `False`.
+            invert: invert image colors. Defaults to `False`.
 
         Raises:
             ValueError: if ``images`` and ``labels`` (if supplied) and notes (if
@@ -152,6 +159,25 @@ class Catalog(FPDF):
             # check if building a new cell will trigger a page break
             if self.will_page_break(h):
                 self.add_page()
+
+            # REFACTOR
+            if not isinstance(im, Image):
+                try:
+                    img = PIL.Image.open(im)
+                except (PIL.UnidentifiedImageError, FileNotFoundError):
+                    pass
+
+            # TODO handle cases where image not found but filter wants to be applied
+            # image preprocessing
+            try:
+                if autocontrast:
+                    img = self._autocontrast(img)
+                if invert:
+                    img = self._invert_image(img)
+                if grayscale:
+                    img = self._to_grayscale(img)
+            except (PIL.UnidentifiedImageError, FileNotFoundError):
+                pass
 
             self._build_cell(im, lb, nt, w, h)
             # new line after last column of row
@@ -218,6 +244,18 @@ class Catalog(FPDF):
         # TODO color trigger keywords for labels?
         self.set_font("helvetica", style="I", size=8)
         self.multi_cell(w=w, txt=txt, ln=2)
+
+    @staticmethod
+    def _autocontrast(img: Image) -> Image:
+        return PIL.ImageOps.autocontrast(img)
+
+    @staticmethod
+    def _invert_image(img: Image) -> Image:
+        return PIL.ImageOps.invert(img)
+
+    @staticmethod
+    def _to_grayscale(img: Image) -> Image:
+        return PIL.ImageOps.grayscale(img)
 
     @staticmethod
     def _dims_to_fit(img: Image, size: Tuple[int, int]) -> Tuple[int, int]:

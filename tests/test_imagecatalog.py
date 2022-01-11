@@ -118,27 +118,26 @@ def test_create_catalog_func(tmp_path):
     create_catalog(tmp_path / "catalog.pdf", images)
 
 
+# TODO keep the option for multiple regex filters?
 files_list = [
-    (["file.jpg", "file.png"], ["*"], ["file.jpg", "file.png"]),
-    (["file.jpg", "file.png"], ["*.jpg"], ["file.jpg"]),
-    (["file_A.jpg", "file_B.jpg"], ["*.jpg", "*A*"], ["file_A.jpg"]),
+    (["file.jpg", "file.png"], ".*", ["file.jpg", "file.png"]),
+    (["file.jpg", "file.png"], r".*\.jpg", ["file.jpg"]),
 ]
 
 
 @pytest.mark.parametrize(
     "files,pattern,expected",
     files_list,
-    ids=["glob_all", "single_filter", "multiple_filters"],
 )
 def test_filter_files(files, pattern, expected):
     """Files are properly filtered by glob patterns."""
     assert filter_files(files, pattern) == expected
 
 
-def test_cli_from_subprocess(tmp_path):
+def test_cli_entrypoint(tmp_path):
     output = tmp_path / "output.pdf"
-    make_sample_files(tmp_path, 1)
-    cmd = f"{sys.executable} -m imagecatalog -i {tmp_path} {output}"
+    files = map(str, make_sample_files(tmp_path, 1))
+    cmd = f"{sys.executable} -m imagecatalog -i {' '.join(files)} -o {output}"
     subprocess.run(cmd.split())
 
     assert output.exists()
@@ -146,33 +145,33 @@ def test_cli_from_subprocess(tmp_path):
 
 def test_cli_from_files(monkeypatch, tmp_path):
     output = tmp_path / "output.pdf"
-    make_sample_files(tmp_path, 1)
-    argv = f"imagecatalog -i {tmp_path} {str(output)}".split()
+    files = map(str, make_sample_files(tmp_path, 1))
+    argv = f"imagecatalog -i {' '.join(files)} -o {str(output)}".split()
     monkeypatch.setattr("sys.argv", argv)
     main()
     assert output.exists()
 
 
-def test_cli_set_orientation(monkeypatch, tmp_path):
+def test_cli_options(monkeypatch, tmp_path):
     output = tmp_path / "output.pdf"
-    make_sample_files(tmp_path, 1)
-    argv = f"imagecatalog -i {tmp_path} --orientation landscape {output}".split()
+    files = map(str, make_sample_files(tmp_path, 1))
+    argv = (
+        f"imagecatalog -i {' '.join(files)} "
+        "--orientation landscape "
+        "--autocontrast "
+        "--invert "
+        "--grayscale "
+        f"-o {output}".split()
+    )
     monkeypatch.setattr("sys.argv", argv)
     main()
     assert output.exists()
-
-
-def test_cli_no_files(monkeypatch, tmp_path):
-    argv = f"imagecatalog -i {tmp_path} catalog.pdf"
-    monkeypatch.setattr("sys.argv", argv.split())
-    with pytest.raises(ValueError):
-        main()
 
 
 def test_cli_output_exists(monkeypatch, tmp_path):
     output = tmp_path / "catalog.pdf"
     output.touch()
-    argv = f"imagecatalog -i {tmp_path} {output}"
+    argv = f"imagecatalog -i {tmp_path} -o {output}"
     monkeypatch.setattr("sys.argv", argv.split())
     with pytest.raises(FileExistsError):
         main()
@@ -187,7 +186,7 @@ def test_cli_from_csv(monkeypatch, tmp_path):
             assert Path(im).exists()
             fp.write(f"{im},,")
     output = tmp_path / "catalog.pdf"
-    argv = f"imagecatalog --csv {str(csvfile)} {str(output)}".split()
+    argv = f"imagecatalog --csv {str(csvfile)} -o {str(output)}".split()
     monkeypatch.setattr("sys.argv", argv)
     main()
     assert output.exists()
