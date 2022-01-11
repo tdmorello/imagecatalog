@@ -59,7 +59,7 @@ line-length = 88
 
 [tool.pytest.ini_options]
 addopts = [
-    # "--doctest-modules",
+    "--xdoctest",
     "--cov=imagecatalog",
     "--cov-report=html",
     "--cov-report=xml"
