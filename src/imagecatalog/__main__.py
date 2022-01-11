@@ -10,6 +10,8 @@ import imagecatalog
 
 PathLike = Union[str, bytes, Path]
 
+DEFAULTS = {"rows": 4, "cols": 3, "orientation": "portrait"}
+
 
 def filter_files(files: List, pattern: str) -> List[str]:
     """Filter files list by regex pattern.
@@ -43,15 +45,12 @@ def parse_csv(csvfile: str) -> Tuple[List[str], List[str], List[str]]:
     return D["image"], D["label"], D["note"]
 
 
-def main():
-    """CLI entrypoint.
+def get_parser() -> argparse.ArgumentParser:
+    """Return an argument parser.
 
-    Raises:
-        ValueError: no images in image list
-        FileExistsError: output file already exists
+    Returns:
+        an argument parser
     """
-    DEFAULTS = {"rows": 4, "cols": 3, "orientation": "portrait"}
-
     parser = argparse.ArgumentParser("imagecatalog")
 
     input_args = parser.add_mutually_exclusive_group(required=True)
@@ -166,6 +165,16 @@ def main():
         help="force overwrite output",
     )
 
+    return parser
+
+
+def main():
+    """CLI entrypoint.
+
+    Raises:
+        FileExistsError: output file already exists
+    """
+    parser = get_parser()
     args = parser.parse_args()
 
     if args.orientation in [None, "portrait"]:
