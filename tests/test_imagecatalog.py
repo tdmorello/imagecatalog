@@ -1,7 +1,9 @@
 """Test suite."""
 
+import inspect
 import subprocess
 import sys
+from itertools import islice
 from pathlib import Path
 from random import randrange
 from typing import List, Tuple
@@ -100,7 +102,7 @@ def test_catalog_checks_integer(rows, is_error):
         catalog.build_table(images, rows=rows)
 
 
-def test_catalog_checks_input_lengths(tmp_path):
+def test_catalog_checks_input_lengths():
     """Catalog class creates PDF."""
     catalog = Catalog()
     catalog.set_title("test catalog")
@@ -112,10 +114,18 @@ def test_catalog_checks_input_lengths(tmp_path):
         catalog.build_table(images, labels)
 
 
-def test_create_catalog_func(tmp_path):
+def test_create_catalog(tmp_path):
     """Convenience function creates PDF."""
     images = make_sample_images(9)
     create_catalog(tmp_path / "catalog.pdf", images)
+
+
+def test_create_catalog_has_all_args():
+    func_sig = inspect.signature(create_catalog)
+    method_sig = inspect.signature(Catalog.build_table)
+    # ignore first value which is 'self'
+    for value in islice(method_sig.parameters.values(), 1, None):
+        assert value in func_sig.parameters.values()
 
 
 # TODO keep the option for multiple regex filters?
@@ -152,6 +162,21 @@ def test_cli_from_files(monkeypatch, tmp_path):
     assert output.exists()
 
 
+def test_cli_from_csv(monkeypatch, tmp_path):
+    csvfile = tmp_path / "sample.csv"
+    with open(csvfile, "w") as fp:
+        fp.write("image,label,note\n")
+        images = make_sample_files(tmp_path, 1)
+        for i, im in enumerate(images):
+            assert Path(im).exists()
+            fp.write(f"{im},,")
+    output = tmp_path / "catalog.pdf"
+    argv = f"imagecatalog --csv {str(csvfile)} -o {str(output)}".split()
+    monkeypatch.setattr("sys.argv", argv)
+    main()
+    assert output.exists()
+
+
 def test_cli_options(monkeypatch, tmp_path):
     output = tmp_path / "output.pdf"
     files = map(str, make_sample_files(tmp_path, 1))
@@ -168,25 +193,10 @@ def test_cli_options(monkeypatch, tmp_path):
     assert output.exists()
 
 
-def test_cli_output_exists(monkeypatch, tmp_path):
+def test_cli_output_already_exists(monkeypatch, tmp_path):
     output = tmp_path / "catalog.pdf"
     output.touch()
     argv = f"imagecatalog -i {tmp_path} -o {output}"
     monkeypatch.setattr("sys.argv", argv.split())
     with pytest.raises(FileExistsError):
         main()
-
-
-def test_cli_from_csv(monkeypatch, tmp_path):
-    csvfile = tmp_path / "sample.csv"
-    with open(csvfile, "w") as fp:
-        fp.write("image,label,note\n")
-        images = make_sample_files(tmp_path, 1)
-        for i, im in enumerate(images):
-            assert Path(im).exists()
-            fp.write(f"{im},,")
-    output = tmp_path / "catalog.pdf"
-    argv = f"imagecatalog --csv {str(csvfile)} -o {str(output)}".split()
-    monkeypatch.setattr("sys.argv", argv)
-    main()
-    assert output.exists()

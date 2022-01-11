@@ -44,14 +44,20 @@ def create_catalog(
         notes: list of notes for images,
             should be same length as ``images``, displayed below image. Defaults
             to `None`.
-        orientation: page orientation, possible values are "portrait" (can be
-                abbreviated "P") or "landscape" (can be abbreviated "L"). Default
-                to "portrait".
         rows: number of rows per page
         cols: number of columns per page
+        orientation: page orientation, possible values are `"portrait"`
+            and `"landscape"`. Defaults to `"portrait"`.
         autocontrast: apply autocontrast adjustment. Defaults to `False`.
         grayscale: convert color image to grayscale. Defaults to `False`.
         invert: invert image colors. Defaults to `False`.
+
+    See Also:
+        :meth:`imagecatalog.Catalog.build_table`
+
+    Todo:
+        - return filename
+        - check that file was written else raise error
     """
     catalog = Catalog(orientation)
     catalog.add_page()
@@ -83,7 +89,7 @@ class Catalog(FPDF):
         >>> catalog.set_title("Image Catalog")
         >>> catalog.add_page()
         >>> catalog.build_table(images, labels, notes, rows=4, cols=3)
-        >>> catalog.output("image_catalog.pdf")
+        >>> catalog.output("catalog.pdf")
     """
 
     def __init__(
@@ -96,12 +102,11 @@ class Catalog(FPDF):
         """Instantiate an FPDF object.
 
         Args:
-            orientation: page orientation, possible values are "portrait" (can be
-                abbreviated "P") or "landscape" (can be abbreviated "L"). Default
-                to "portrait".
+            orientation: page orientation, possible values are `"portrait"`
+                and `"landscape"`. Defaults to `"portrait"`.
             unit: possible values are "pt", "mm", "cm", "in", or a number
             format: possible values are "a3", "a4", "a5", "letter", "legal" or a tuple
-                (width, height) expressed in the given unit. Default to "a4".
+                (width, height) expressed in the given unit. Defaults to "a4".
             **kwargs: keyword arguments passed to `fpdf.FPDF`
         """
         super().__init__(orientation=orientation, unit=unit, format=format, **kwargs)
@@ -152,7 +157,7 @@ class Catalog(FPDF):
             invert: invert image colors. Defaults to `False`.
 
         Raises:
-            ValueError: if ``images`` and ``labels`` (if supplied) and notes (if
+            ValueError: ``images`` and ``labels`` (if supplied) and notes (if
                 supplied) are not equal lengths.
         """
         # check that supplied arguments are same length
