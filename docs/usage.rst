@@ -57,3 +57,7 @@ Use regular expressions to filter files
 .. code-block:: bash
 
    imagecatalog -i images/*.png -o catalog.pdf --regex '.*(1|2).*'
+
+.. argparse::
+   :ref: imagecatalog.__main__.get_parser
+   :prog: imagecatalog
