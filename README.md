@@ -82,14 +82,14 @@ imagecatalog -i images/*.png -o catalog.pdf \
 integrate with shell utilities
 
 ```bash
-# make a catalog with all images created within the last day
+# make a catalog from all images created within the last day
 find . -ctime 1d | xargs imagecatalog -o catalog.pdf -i
 ```
 
 use regular expressions to filter files
 
 ```bash
-# make a catalog with images that have '1' and/or '2' in the filename
+# make a catalog from images that have '1' and/or '2' in the filename
 imagecatalog -i images/*.png -o catalog.pdf --regex '.*(1|2).*'
 ```
 
